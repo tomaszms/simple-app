@@ -1,0 +1,211 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: simple-app
+
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  storageClassName: generic
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: {{ postgres_nfs_path }}
+    server: {{ nfs_server }}
+  persistentVolumeReclaimPolicy: Recycle
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    type: local
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: generic
+  selector:
+    matchLabels:
+  volumeName: postgres-pv
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-credentials
+type: Opaque
+data:
+  user: {{ postgres_user }}
+  password: {{ postgres_password }}
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: postgres-container
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-container
+  template:
+    metadata:
+      labels:
+        app: postgres-container
+        tier: backend
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres:9.6.6
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+
+            - name: POSTGRES_DB
+              value: kubernetes_django
+
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-volume-mount
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: postgres-volume-mount
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: django-service
+  namespace: {{ namespace }}
+spec:
+  selector:
+    pod: django
+  ports:
+  - protocol: TCP
+    port: 8000
+    nodePort: 30036
+  type: NodePort
+
+
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: django
+  namespace: {{ namespace }}
+  labels:
+    app: django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: django
+  template:
+    metadata:
+      labels:
+        pod: django
+    spec:
+      containers:
+        - name: django
+          image: {{ docker_repository }}/simple-app:{{ simple_app_version }}
+          ports:
+            - containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path:/show:
+              port: 8000
+            timeoutSeconds: 3
+            initialDelaySeconds: 10
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+
+            - name: POSTGRES_HOST
+              value: postgres-service
+
+            - name: REDIS_HOST
+              value: redis-service
+
+
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrations
+  namespace: {{ namespace }}
+spec:
+  template:
+    spec:
+      containers:
+        - name: django
+          image: {{ docker_repository }}/simple-app:{{ simple_app_version}}
+
+          command: ["/bin/sh","-c",'/app/run_migrations.sh']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+
+            - name: POSTGRES_HOST
+              value: postgres-service
+      restartPolicy: Never
+  backoffLimit: 5

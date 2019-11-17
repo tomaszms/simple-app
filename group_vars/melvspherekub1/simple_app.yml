@@ -1,0 +1,5 @@
+simple_app_version: v1.0.1
+docker_repository: tomazms
+namespace: simple-app
+nfs_server: 192.168.1.150
+postgres_nfs_path: /var/nfs/postgres
