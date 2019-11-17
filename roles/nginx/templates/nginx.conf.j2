@@ -1,0 +1,20 @@
+events { }
+
+http {
+   upstream backend {
+      server {{ virtual_k8s_nodes.master1.vm_management_ip }}:30036;
+      server {{ virtual_k8s_nodes.worker1.vm_management_ip }}:30036;
+      server {{ virtual_k8s_nodes.worker2.vm_management_ip }}:30036;
+   }
+
+   # This server accepts all traffic to port 80 and passes it to the upstream.
+   # Notice that the upstream name and the proxy_pass need to match.
+
+   server {
+      listen 80;
+
+      location / {
+          proxy_pass http://backend;
+      }
+   }
+}

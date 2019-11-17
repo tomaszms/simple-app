@@ -1,0 +1,70 @@
+---
+#Deploy OVF file
+- name: Deploy OVF file based on Centos golden image stored on Ansible AWX
+  vmware_deploy_ovf:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    ovf: "/home/centos/centos_golden_image.ovf"
+    datastore: '{{ vsphere_datastore }}'
+    name: '{{ item.value.vm_hostname }}'
+    validate_certs: no
+    networks: "{u'VM Network':u'{{ vm_network }}'}"
+    wait_for_ip_address: no
+    power_on: no
+  delegate_to: localhost
+  with_dict: "{{ virtual_k8s_nodes }}"
+
+
+
+# Deploy a VM based on the OVF file using Ansible 'vmware_guest' module
+- name: Deploy VM based on the OVF golden image
+  vmware_guest:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    validate_certs: no
+    folder: "/ha-datacenter/vm"
+    name: '{{ item.value.vm_hostname }}'
+    guest_id: '{{ vm_guest_id }}'
+    force: yes
+    annotation: "{{ vm_guest_notes }}"
+    disk:
+    - size_gb: "{{ item.value.vm_disk_size_gb }}"
+      type: thin
+      datastore: '{{ vsphere_datastore }}'
+    networks:
+    - name: '{{ vm_network }}'
+      ip: '{{ item.value.vm_management_ip }}'
+      netmask: '{{ vm_management_netmask }}'
+      gateway: '{{ vm_gateway }}'
+      dns_servers:
+      - '{{ vm_dns_server }}'
+    hardware:
+      memory_mb: '{{ item.value.vm_memory_mb }}'
+      num_cpus: '{{ item.value.vm_number_vcpus }}'
+    customization:
+      dns_servers:
+      - '{{ vm_dns_server }}'
+      domain : '{{ vm_domain_name }}'
+      hostname: '{{ item.value.vm_hostname }}'
+    wait_for_customization: True
+    wait_for_ip_address: yes
+    state: present
+  delegate_to: localhost
+  with_dict: "{{ virtual_k8s_nodes }}"
+
+
+#power on VM
+- name: Power on VM
+  vmware_guest:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    validate_certs: no
+    folder: "/ha-datacenter/vm"
+    name: '{{ item.value.vm_hostname }}'
+    state: poweredon
+    wait_for_ip_address: yes
+  delegate_to: localhost
+  with_dict: "{{ virtual_k8s_nodes }}"
