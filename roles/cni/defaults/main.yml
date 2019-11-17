@@ -1,0 +1,2 @@
+---
+flannel_cni_opts: "--iface={{ vm_mgmt_interface }}"

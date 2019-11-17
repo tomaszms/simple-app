@@ -1,3 +1,4 @@
+---
 - name: Create inentory for ESXi host
   add_host:
     hostname: "{{ esxi_ip }}"
@@ -27,4 +28,28 @@
   become_user: root
   with_dict: "{{ virtual_k8s_nodes }}"
   when: "'loadbalancer' in item.key"
+  changed_when: false
+
+
+- name: Create inventory for Master hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: master_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'master' in item.key"
+  changed_when: false
+
+
+- name: Create inventory for Worker hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: worker_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'worker' in item.key"
   changed_when: false
