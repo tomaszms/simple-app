@@ -1,17 +1,55 @@
 ---
-- name: Virtual nodes provisioning | Generate inventory based on group_vars
-  hosts: localhost
-  vars_files:
-    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
-    - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
-  roles:
-    - generate-host-groups
+- name: Create inentory for ESXi host
+  add_host:
+    hostname: "{{ esxi_ip }}"
+    management_ip: "{{ esxi_ip }}"
+    groups: esxi
+  changed_when: false
 
-- name: Install dependencies
-  hosts:
-    - k8s_nodes
-  vars_files:
-    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
-    - "group_vars/{{ cloud_name }}/kubernetes_cluster.yml"
-  roles:
-    - { role: docker, tags: docker }
+
+
+- name: Create inentory for k8s nodes
+  add_host:
+    hostname: "{{ item.value.vm_management_ip }}"
+    management_ip: "{{ item.value.vm_management_ip }}"
+    groups: k8s_nodes
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  changed_when: false
+
+
+- name: Create inventory for LoadBalancer hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: loadbalancer_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'loadbalancer' in item.key"
+  changed_when: false
+
+
+- name: Create inventory for Master hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: master_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'master' in item.key"
+  changed_when: false
+
+
+- name: Create inventory for Worker hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: worker_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'worker' in item.key"
+  changed_when: false
