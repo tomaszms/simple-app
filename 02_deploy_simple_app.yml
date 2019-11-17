@@ -1,0 +1,18 @@
+---
+- name: Virtual nodes provisioning | Generate inventory based on group_vars
+  hosts: localhost
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
+  roles:
+    - generate-host-groups
+
+
+- name: Deploy cluster on master node
+  hosts:
+    - master_nodes
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/kubernetes_cluster.yml"
+  roles:
+    - simple-app

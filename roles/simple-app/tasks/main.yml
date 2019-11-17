@@ -1,0 +1,9 @@
+---
+- name: Render the yaml
+  set_fact:
+    k8s_yaml: '{{ lookup("template", "templates/simple-app.yaml.j2") }}'
+
+- name: Apply telemetry stack on master node
+  command: kubectl create -f -
+  args:
+    stdin: '{{ k8s_yaml }}'
