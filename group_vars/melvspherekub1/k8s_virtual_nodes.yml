@@ -1,0 +1,34 @@
+#k8s nodes parameters
+virtual_k8s_nodes:
+
+#Define properties for master node
+  master1:
+    vm_hostname: master.local
+    vm_management_ip: 192.168.1.160
+    vm_disk_size_gb: 40
+    vm_memory_mb: 8092
+    vm_number_vcpus: 2
+
+#Define properties for worker node
+  worker1:
+    vm_hostname: worker1.local
+    vm_management_ip: 192.168.1.161
+    vm_disk_size_gb: 40
+    vm_memory_mb: 4096
+    vm_number_vcpus: 2
+
+#Define properties for worker node
+  worker2:
+    vm_hostname: worker2.local
+    vm_management_ip: 192.168.1.162
+    vm_disk_size_gb: 40
+    vm_memory_mb: 4096
+    vm_number_vcpus: 2
+
+#Define properties for loadbalancer node
+  loadbalancer1:
+    vm_hostname: loadbalancer1.local
+    vm_management_ip: 192.168.1.163
+    vm_disk_size_gb: 40
+    vm_memory_mb: 2048
+    vm_number_vcpus: 1
