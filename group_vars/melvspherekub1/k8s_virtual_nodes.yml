@@ -47,3 +47,8 @@ vm_domain_name: "local"
 
 # Mgmt interface of the VM
 vm_mgmt_interface: ens192
+
+#Nginx repositories needed to install nginx
+epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+epel_repo_gpg_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+epel_repofile_path: "/etc/yum.repos.d/epel.repo"

@@ -13,3 +13,13 @@
     - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
   roles:
     - provision-vms-vsphere
+
+
+- name: Virtual nodes provisioning | Deploy and configure NGINX
+  hosts:
+    - loadbalancer_nodes
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
+  roles:
+    - nginx

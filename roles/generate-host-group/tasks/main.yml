@@ -16,3 +16,15 @@
   become_user: root
   with_dict: "{{ virtual_k8s_nodes }}"
   changed_when: false
+
+
+- name: Create inventory for LoadBalancer hosts
+  add_host:
+    name: "{{ item.value.vm_management_ip }}"
+    groups: loadbalancer_nodes
+    management_ip: "{{ item.value.vm_management_ip }}"
+  become: yes
+  become_user: root
+  with_dict: "{{ virtual_k8s_nodes }}"
+  when: "'loadbalancer' in item.key"
+  changed_when: false
