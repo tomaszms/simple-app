@@ -18,8 +18,8 @@ spec:
   accessModes:
   - ReadWriteMany
   nfs:
-    path: /var/nfs/postgres
-    server: 192.168.1.150
+    path: {{ postgres_nfs_path }}
+    server: {{ nfs_server }}
   persistentVolumeReclaimPolicy: Recycle
 
 ---
@@ -47,8 +47,8 @@ metadata:
   name: postgres-credentials
 type: Opaque
 data:
-  user: YWRtaW4=
-  password: YWRtaW4=
+  user: {{ postgres_user }}
+  password: {{ postgres_password }}
 
 ---
 kind: Service
@@ -68,7 +68,7 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: postgres
-  namespace: simple-app
+  namespace: {{ namespace }}
 spec:
   replicas: 1
   selector:
@@ -117,7 +117,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: django-service
-  namespace: simple-app
+  namespace: {{ namespace }}
 spec:
   selector:
     pod: django
@@ -133,7 +133,7 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: django
-  namespace: simple-app
+  namespace: {{ namespace }}
   labels:
     app: django
 spec:
@@ -148,7 +148,7 @@ spec:
     spec:
       containers:
         - name: django
-          image: tomazms/simple-app:v1.0.1
+          image: {{ docker_repository }}/simple-app:{{ simple_app_version }}
           ports:
             - containerPort: 8000
           livenessProbe:
@@ -182,14 +182,14 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: django-migrations2
-  namespace: simple-app
+  name: django-migrations
+  namespace: {{ namespace }}
 spec:
   template:
     spec:
       containers:
         - name: django
-          image: tomazms/simple-app:v1.0.1
+          image: {{ docker_repository }}/simple-app:{{ simple_app_version}}
 
           command: ["/bin/sh","-c",'/app/run_migrations.sh']
           env:
