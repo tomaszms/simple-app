@@ -32,3 +32,18 @@ virtual_k8s_nodes:
     vm_disk_size_gb: 40
     vm_memory_mb: 2048
     vm_number_vcpus: 1
+
+
+#VM Management network variables
+vm_management_netmask: 255.255.255.0
+vm_gateway: 192.168.1.1
+vm_dns_server: '8.8.8.8'
+
+#Create vsphere guests based on the following
+vm_guest_id: 'rhel7_64Guest'
+vm_guest_template: 'centos_gold'
+vm_guest_notes: 'Managed by Ansible'
+vm_domain_name: "local"
+
+# Mgmt interface of the VM
+vm_mgmt_interface: ens192

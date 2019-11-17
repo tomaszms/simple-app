@@ -1,0 +1,9 @@
+# Infrastructure
+# vSphere environment
+vsphere_host: "{{ vsphere_host }}"
+vsphere_user: " {{ vsphere_user }}"
+vsphere_password: "{{ vsphere_password }}"
+vsphere_folder: '/ANSIBLE'
+vsphere_datastore: "vm_storage"
+esxi_ip: "192.168.1.110"
+vm_network: "vm_network"

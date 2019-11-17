@@ -1,0 +1,15 @@
+- name: Virtual nodes provisioning | Generate inventory based on group_vars
+  hosts: localhost
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
+  roles:
+    - generate-host-groups
+
+- name: Virtual nodes provisioning | Provision VMs based on group_vars in vSphere env
+  hosts: localhost
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/vsphere_infra.yml"
+  roles:
+    - provision-vms-vsphere
