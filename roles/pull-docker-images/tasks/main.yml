@@ -1,0 +1,8 @@
+- name: pull postgres image
+  shell: docker pull postgres:9.6.6
+
+- name: pull simple-app image
+  shell: docker pull tomazms/simple-app:v1.0.1
+
+- name: pull simple-app image
+  shell: docker pull  tomazms/simple-app:v1.0.1
