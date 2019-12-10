@@ -1,4 +1,12 @@
 ---
+- name: Create hosts file
+  template:
+    src: "hosts.j2"
+    dest: "/etc/hosts"
+
+- name: install nfs server
+  action: yum pkg=nfs-utils state=present
+
 
 - name: Install Kubernetes packages
   include_tasks: pkg.yml

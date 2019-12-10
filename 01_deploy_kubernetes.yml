@@ -7,6 +7,41 @@
   roles:
     - generate-host-groups
 
+
+- name: SSH keys | Generate public key on master nodes
+  hosts:
+    - master_nodes
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+  tasks:
+    - name: KVM | Make sure the SSH key exists
+      user:
+        name: root
+        generate_ssh_key: yes
+
+
+    - name: SSH keys | Take the key
+      fetch:
+        src: "/root/.ssh/id_rsa.pub"
+        dest: /tmp/.rsync.pub
+        flat: yes
+      changed_when: false
+
+
+
+- name: SSH keys | Setup SSH keys
+  hosts:
+    - master_nodes
+    - worker_nodes
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+  tasks:
+  - name: Insert the key
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '/tmp/.rsync.pub') }}"
+
 - name: Install dependencies
   hosts:
     - k8s_nodes
@@ -35,3 +70,7 @@
     - "group_vars/{{ cloud_name }}/kubernetes_cluster.yml"
   roles:
     - { role: kubernetes/node, tags: node }
+
+
+- pause:
+    seconds: 30

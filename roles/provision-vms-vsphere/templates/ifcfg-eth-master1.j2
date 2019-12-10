@@ -1,0 +1,10 @@
+DEVICE={{ vm_mgmt_interface }}
+TYPE=Ethernet
+BOOTPROTO=none
+ONBOOT=yes
+IPV6INIT=no
+IPADDR={{ virtual_k8s_nodes.master1.vm_management_ip }}
+GATEWAY={{ vm_gateway }}
+NETMASK= {{ vm_management_netmask }}
+PEERDNS=yes
+DNS1={{ vm_dns_server }}
