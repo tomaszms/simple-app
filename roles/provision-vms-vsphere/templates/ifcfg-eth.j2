@@ -1,0 +1,10 @@
+DEVICE={{ vm_mgmt_interface }}
+TYPE=Ethernet
+BOOTPROTO=none
+ONBOOT=yes
+IPV6INIT=no
+IPADDR={{ item.value.vm_management_ip }}
+NETMASK= {{ vm_management_netmask }}
+GATEWAY={{ vm_gateway }}
+PEERDNS=yes
+DNS1={{ vm_dns_server }}

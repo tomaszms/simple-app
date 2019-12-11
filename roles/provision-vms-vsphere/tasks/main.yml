@@ -55,16 +55,141 @@
   with_dict: "{{ virtual_k8s_nodes }}"
 
 
-#power on VM
-- name: Power on VM
+- name: Power on the master node
   vmware_guest:
     hostname: '{{ vsphere_host }}'
     username: '{{ vsphere_user }}'
     password: '{{ vsphere_password }}'
     validate_certs: no
     folder: "/ha-datacenter/vm"
-    name: '{{ item.value.vm_hostname }}'
+    name: "{{ virtual_k8s_nodes.master1.vm_hostname }}"
     state: poweredon
     wait_for_ip_address: yes
   delegate_to: localhost
-  with_dict: "{{ virtual_k8s_nodes }}"
+
+
+- name: Configure Interface
+  template:
+    src: "ifcfg-eth-master1.j2"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ vm_mgmt_interface }}"
+  delegate_to: '{{ vm_template_ip }}'
+
+- name: Restart Networking
+  shell: echo 'nameserver {{ vm_dns_server }}' > /etc/resolv.conf & echo '{{ virtual_k8s_nodes.master1.vm_hostname  }}' > /etc/hostname & reboot &
+  async: 3
+  poll: 0
+  delegate_to: '{{ vm_template_ip }}'
+
+
+- name: Wait for master
+  local_action:
+    module: wait_for
+      host={{ virtual_k8s_nodes.master1.vm_management_ip }}
+      port=22
+      delay=1
+      timeout=100
+
+- name: Power on the worker node 1
+  vmware_guest:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    validate_certs: no
+    folder: "/ha-datacenter/vm"
+    name: "{{ virtual_k8s_nodes.worker1.vm_hostname }}"
+    state: poweredon
+    wait_for_ip_address: yes
+  delegate_to: localhost
+
+
+- name: Configure Interface
+  template:
+    src: "ifcfg-eth-worker1.j2"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ vm_mgmt_interface }}"
+  delegate_to: '{{ vm_template_ip }}'
+
+- name: Restart Networking
+  shell: "echo >> 'nameserver {{ vm_dns_server }}' > /etc/resolv.conf & echo '{{ virtual_k8s_nodes.worker1.vm_hostname  }}' > /etc/hostname & reboot &"
+  async: 3
+  poll: 0
+  delegate_to: '{{ vm_template_ip }}'
+
+
+- name: Wait for worker1
+  local_action:
+    module: wait_for
+      host={{ virtual_k8s_nodes.worker1.vm_management_ip }}
+      port=22
+      delay=1
+      timeout=100
+
+
+- name: Power on the worker node 2
+  vmware_guest:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    validate_certs: no
+    folder: "/ha-datacenter/vm"
+    name: "{{ virtual_k8s_nodes.worker2.vm_hostname }}"
+    state: poweredon
+    wait_for_ip_address: yes
+  delegate_to: localhost
+
+
+- name: Configure Interface
+  template:
+    src: "ifcfg-eth-worker2.j2"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ vm_mgmt_interface }}"
+  delegate_to: '{{ vm_template_ip }}'
+
+- name: Restart Networking
+  shell: "echo >> 'nameserver {{ vm_dns_server }}' > /etc/resolv.conf & echo '{{ virtual_k8s_nodes.worker2.vm_hostname  }}' > /etc/hostname & reboot &"
+  async: 3
+  poll: 0
+  delegate_to: '{{ vm_template_ip }}'
+
+
+- name: Wait for worker2
+  local_action:
+    module: wait_for
+      host={{ virtual_k8s_nodes.worker2.vm_management_ip }}
+      port=22
+      delay=1
+      timeout=100
+
+
+
+- name: Power on load balancer
+  vmware_guest:
+    hostname: '{{ vsphere_host }}'
+    username: '{{ vsphere_user }}'
+    password: '{{ vsphere_password }}'
+    validate_certs: no
+    folder: "/ha-datacenter/vm"
+    name: "{{ virtual_k8s_nodes.loadbalancer1.vm_hostname }}"
+    state: poweredon
+    wait_for_ip_address: yes
+  delegate_to: localhost
+
+
+- name: Configure Interface
+  template:
+    src: "ifcfg-eth-loadbalancer1.j2"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ vm_mgmt_interface }}"
+  delegate_to: '{{ vm_template_ip }}'
+
+- name: Restart Networking
+  shell: "echo >> 'nameserver {{ vm_dns_server }}' > /etc/resolv.conf & echo '{{ virtual_k8s_nodes.loadbalancer1.vm_hostname  }}' > /etc/hostname & reboot &"
+  async: 3
+  poll: 0
+  delegate_to: '{{ vm_template_ip }}'
+
+
+- name: Wait for loadbalancer1
+  local_action:
+    module: wait_for
+      host={{ virtual_k8s_nodes.loadbalancer1.vm_management_ip }}
+      port=22
+      delay=1
+      timeout=100

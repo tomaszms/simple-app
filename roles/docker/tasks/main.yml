@@ -1,4 +1,7 @@
 ---
+- selinux:
+    state: disabled
+
 - name: Install Docker container engine
   include_tasks: pkg.yml
 

@@ -8,6 +8,16 @@
     - generate-host-groups
 
 
+- name: Pull docker images
+  hosts:
+    - worker_nodes
+  vars_files:
+    - "group_vars/{{ cloud_name }}/k8s_virtual_nodes.yml"
+    - "group_vars/{{ cloud_name }}/kubernetes_cluster.yml"
+    - "group_vars/{{ cloud_name }}/simple_app.yml"
+  roles:
+    - pull-docker-images
+
 - name: Deploy simple app on master node
   hosts:
     - master_nodes

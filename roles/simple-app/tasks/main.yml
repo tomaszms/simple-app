@@ -1,4 +1,9 @@
 ---
+- name: simple app create | Create yaml file on the master
+  template:
+    src: simple-app.yaml.j2
+    dest: /home/simple-app.yaml
+
 - name: Render the yaml
   set_fact:
     k8s_yaml: '{{ lookup("template", "templates/simple-app.yaml.j2") }}'
