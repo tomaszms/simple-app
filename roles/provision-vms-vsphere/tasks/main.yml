@@ -68,6 +68,14 @@
   delegate_to: localhost
 
 
+- name: Wait for default IP
+  local_action:
+    module: wait_for
+      host='{{ vm_template_ip }}'
+      port=22
+      delay=1
+      timeout=100
+
 - name: Configure Interface
   template:
     src: "ifcfg-eth-master1.j2"
@@ -101,6 +109,13 @@
     wait_for_ip_address: yes
   delegate_to: localhost
 
+- name: Wait for default IP
+  local_action:
+    module: wait_for
+      host='{{ vm_template_ip }}'
+      port=22
+      delay=1
+      timeout=100
 
 - name: Configure Interface
   template:
@@ -135,6 +150,15 @@
     state: poweredon
     wait_for_ip_address: yes
   delegate_to: localhost
+
+
+- name: Wait for default IP
+  local_action:
+    module: wait_for
+      host='{{ vm_template_ip }}'
+      port=22
+      delay=1
+      timeout=100
 
 
 - name: Configure Interface
@@ -172,6 +196,13 @@
     wait_for_ip_address: yes
   delegate_to: localhost
 
+- name: Wait for default IP
+  local_action:
+    module: wait_for
+      host='{{ vm_template_ip }}'
+      port=22
+      delay=1
+      timeout=100
 
 - name: Configure Interface
   template:
